@@ -26,6 +26,7 @@ export default function ActivitiesPage() {
     loadActivities,
     loadEmissionFactors,
     addActivity,
+    bulkAddActivities,
     editActivity,
     removeActivity,
   } = useDataStore();
@@ -70,9 +71,7 @@ export default function ActivitiesPage() {
   };
 
   const handleImport = async (items: Omit<Activity, "id">[]) => {
-    for (const item of items) {
-      await addActivity(item);
-    }
+    await bulkAddActivities(items);
   };
 
   if (activitiesStatus === "error") {

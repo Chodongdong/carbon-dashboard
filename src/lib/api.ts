@@ -28,6 +28,16 @@ export async function createActivity(
   return created;
 }
 
+// 배치 임포트 — DB 배치 insert는 개별 요청보다 안정적이므로 실패 시뮬레이션 제외
+export async function bulkCreateActivities(
+  inputs: Omit<Activity, "id">[]
+): Promise<Activity[]> {
+  await delay(jitter());
+  const created = inputs.map((input) => ({ ...input, id: crypto.randomUUID() }));
+  _activities = [..._activities, ...created];
+  return created;
+}
+
 export async function updateActivity(
   input: Activity
 ): Promise<Activity> {

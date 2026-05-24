@@ -6,6 +6,7 @@ import {
   fetchActivities,
   fetchEmissionFactors,
   createActivity,
+  bulkCreateActivities,
   updateActivity,
   deleteActivity,
   updateEmissionFactor,
@@ -24,6 +25,7 @@ type DataStore = {
   loadActivities: () => Promise<void>;
   loadEmissionFactors: () => Promise<void>;
   addActivity: (input: Omit<Activity, "id">) => Promise<void>;
+  bulkAddActivities: (inputs: Omit<Activity, "id">[]) => Promise<void>;
   editActivity: (input: Activity) => Promise<void>;
   removeActivity: (id: string) => Promise<void>;
   editEmissionFactor: (input: EmissionFactor) => Promise<void>;
@@ -60,6 +62,11 @@ export const useDataStore = create<DataStore>((set, get) => ({
   addActivity: async (input) => {
     const created = await createActivity(input);
     set((s) => ({ activities: [...s.activities, created] }));
+  },
+
+  bulkAddActivities: async (inputs) => {
+    const created = await bulkCreateActivities(inputs);
+    set((s) => ({ activities: [...s.activities, ...created] }));
   },
 
   editActivity: async (input) => {
