@@ -3,6 +3,8 @@
 PCF(Product Carbon Footprint) 전과정 데이터를 시각화하는 인터랙티브 대시보드입니다.  
 실무자·경영자가 활동 데이터를 입력하면 GHG Protocol 기준으로 탄소 배출량을 자동 계산합니다.
 
+**배포 URL:** https://carbon-dashboard-ashen.vercel.app
+
 ---
 
 ## 실행 방법
