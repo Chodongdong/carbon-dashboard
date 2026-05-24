@@ -45,36 +45,66 @@ export function ExcelImport({ onImport }: Props) {
       reader.onload = (e) => {
         try {
           const wb = XLSX.read(e.target?.result, { type: "array", cellDates: true });
-          // "원본 활동 데이터" 시트 우선, 없으면 첫 번째 시트
           const sheetName =
             wb.SheetNames.find((n) => n.includes("활동")) ?? wb.SheetNames[0];
           const ws = wb.Sheets[sheetName];
-          const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, {
+
+          // 원시 배열로 읽어서 헤더 행을 직접 탐지
+          // (스프레드시트 1~2행이 제목/부제목이므로 첫 행이 헤더가 아닐 수 있음)
+          const rawRows = XLSX.utils.sheet_to_json<unknown[]>(ws, {
+            header: 1,
             defval: "",
           });
+
+          // "일자" 또는 "활동 유형"이 포함된 행을 헤더로 인식
+          const headerRowIndex = rawRows.findIndex((row) =>
+            (row as string[]).some(
+              (cell) => typeof cell === "string" && (cell.includes("일자") || cell.includes("활동 유형"))
+            )
+          );
+
+          if (headerRowIndex === -1) {
+            resolve({ imported: [], skipped: 0 });
+            return;
+          }
+
+          const headers = rawRows[headerRowIndex] as string[];
+          const dataRows = rawRows.slice(headerRowIndex + 1);
+
+          const colIndex = (names: string[]) =>
+            headers.findIndex((h) => names.some((n) => String(h).includes(n)));
+
+          const dateCol = colIndex(["일자", "date"]);
+          const typeCol = colIndex(["활동 유형", "activityType"]);
+          const sourceCol = colIndex(["설명", "source"]);
+          const qtyCol = colIndex(["량", "quantity"]);
+          const unitCol = colIndex(["단위", "unit"]);
 
           const imported: Omit<Activity, "id">[] = [];
           let skipped = 0;
 
-          for (const row of rows) {
-            // 헤더 행 또는 빈 행 스킵
-            const rawDate = row["일자(원본)"] ?? row["일자"] ?? row["date"] ?? "";
-            const rawType = String(row["활동 유형"] ?? row["activityType"] ?? "").trim();
-            const rawSource = String(row["설명"] ?? row["source"] ?? "").trim();
-            const rawQty = row["량"] ?? row["quantity"] ?? "";
-            const rawUnit = String(row["단위"] ?? row["unit"] ?? "").trim();
+          for (const rawRow of dataRows) {
+            const row = rawRow as unknown[];
+            const rawDate = row[dateCol];
+            const rawType = String(row[typeCol] ?? "").trim();
+            const rawSource = String(row[sourceCol] ?? "").trim();
+            const rawQty = row[qtyCol];
+            const rawUnit = String(row[unitCol] ?? "").trim();
 
             const activityType = TYPE_MAP[rawType];
             const source = SOURCE_MAP[rawSource];
             const unit = UNIT_MAP[rawUnit];
             const quantity = parseFloat(String(rawQty));
 
-            // 날짜 변환 (Date 객체 또는 문자열)
             let date = "";
             if (rawDate instanceof Date) {
               date = rawDate.toISOString().slice(0, 10);
             } else if (typeof rawDate === "string" && rawDate) {
               date = rawDate.slice(0, 10);
+            } else if (typeof rawDate === "number") {
+              // Excel 날짜 시리얼 넘버 처리
+              const d = XLSX.SSF.parse_date_code(rawDate);
+              if (d) date = `${d.y}-${String(d.m).padStart(2, "0")}-${String(d.d).padStart(2, "0")}`;
             }
 
             if (!activityType || !source || !unit || isNaN(quantity) || !date) {
