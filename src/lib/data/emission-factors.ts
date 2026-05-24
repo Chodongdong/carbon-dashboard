@@ -1,0 +1,48 @@
+import type { EmissionFactor } from "@/types";
+
+export const emissionFactors: EmissionFactor[] = [
+  {
+    id: "ef-1",
+    source: "한국전력",
+    activityType: "electricity",
+    unit: "kWh",
+    factor: 0.456,
+    scope: "scope2",
+    version: 1,
+    effectiveFrom: "2025-01-01",
+    notes: "한국전력 기본값 (국가 전력 배출계수)",
+  },
+  {
+    id: "ef-2",
+    source: "플라스틱 1",
+    activityType: "raw_material",
+    unit: "kg",
+    factor: 2.3,
+    scope: "scope3",
+    version: 1,
+    effectiveFrom: "2025-01-01",
+    notes: "원소재 플라스틱 1 — Scope 3 Upstream",
+  },
+  {
+    id: "ef-3",
+    source: "플라스틱 2",
+    activityType: "raw_material",
+    unit: "kg",
+    factor: 3.2,
+    scope: "scope3",
+    version: 1,
+    effectiveFrom: "2025-01-01",
+    notes: "원소재 플라스틱 2 — Scope 3 Upstream",
+  },
+  {
+    id: "ef-4",
+    source: "트럭",
+    activityType: "transport",
+    unit: "ton-km",
+    factor: 3.5,
+    scope: "scope3",
+    version: 1,
+    effectiveFrom: "2025-01-01",
+    notes: "운송 (트럭) — Scope 3 Downstream",
+  },
+];
